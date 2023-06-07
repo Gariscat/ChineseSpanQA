@@ -20,7 +20,17 @@ if __name__ == '__main__':
     train_loader = DataLoader(dataset=train_set, batch_size=4,)
     val_loader = DataLoader(dataset=val_set, batch_size=4,)
 
-    model = BertQA(args.pretrained_path, args.opt_name, args.lr)
-    wandb_logger = WandbLogger(entity='gariscat', project='ChineseSpanQA', log_model=True)
+    model = BertQA(args.pretrained_path, opt_name=args.opt_name, lr=args.lr)
+    wandb_logger = WandbLogger(
+        entity='gariscat',
+        project='ChineseSpanQA',
+        config={
+            'pretrained_path': args.pretrained_path,
+            'opt_name': args.opt_name,
+            'lr': args.lr,
+            'max_epochs': args.max_epochs,
+        },
+        log_model=True
+    )
     trainer = pl.Trainer(accelerator="gpu", devices="auto", logger=wandb_logger, max_epochs=args.max_epochs)
     trainer.fit(model=model, train_dataloaders=train_loader, val_dataloaders=val_loader)
