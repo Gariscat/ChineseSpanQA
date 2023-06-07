@@ -15,7 +15,7 @@ if __name__ == '__main__':
     """
     tokenizer_cls = BertTokenizer if 'bert' in args.pretrained_path else AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained_path)
-    model = BertQA.load_from_checkpoint(args.ckpt_path, pretrained_path=args.pretrained_path)
+    model = ModelQA.load_from_checkpoint(args.ckpt_path, pretrained_path=args.pretrained_path)
     model.eval()
 
     while True:

@@ -4,7 +4,7 @@ import json
 from pprint import pprint
 from typing import Any, List
 from tqdm import tqdm
-from transformers import BertTokenizer
+
 
 def locate_list_in_list(sup: List, sub: List):
     st, ed = None, None
@@ -35,7 +35,7 @@ class CMRCDataset(Dataset):
                 ### assert len(q_dict['answers']) == 1  # redundant list
                 question = q_dict['question']
                 answer_text = q_dict['answers'][0]['text']
-                if len(question) + len(context) > max_length-10:
+                if max_length and len(question) + len(context) > max_length-10:
                     continue
                 answer_st = q_dict['answers'][0]['answer_start']
                 if context[answer_st] != answer_text[0]:  # erroneous annotation
@@ -57,7 +57,8 @@ class CMRCDataset(Dataset):
                 print(len(question))
                 print(len(input_ids))
                 print('\n\n\n')"""
-                assert len(input_ids) == max_length
+                if max_length:
+                    assert len(input_ids) == max_length
 
                 st, ed = locate_list_in_list(input_ids, answer_ids)
                 if st is None or ed is None:
