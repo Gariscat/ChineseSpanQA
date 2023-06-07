@@ -1,21 +1,22 @@
 from typing import Optional
-from transformers import BertModel
+from transformers import BertModel, AutoModel
 from torch import nn, optim
 import pytorch_lightning as pl
 
 class BertQA(pl.LightningModule):
     def __init__(self, pretrained_path, opt_name='Adam', lr=1e-3):
         super().__init__()
-        self.bert = BertModel.from_pretrained(pretrained_path)
+        backbone_cls = BertModel if 'bert' in pretrained_path else AutoModel
+        self.backbone = backbone_cls.from_pretrained(pretrained_path)
         self.st_out = nn.Linear(self.bert.config.hidden_size, 1)
         self.ed_out = nn.Linear(self.bert.config.hidden_size, 1)
         self.lr = lr
         self.opt_name = opt_name
 
     def forward(self, input_tensor):
-        bert_outputs = self.bert(input_ids=input_tensor)
-        st_scores = self.st_out(bert_outputs.last_hidden_state).squeeze(-1)
-        ed_scores = self.ed_out(bert_outputs.last_hidden_state).squeeze(-1)
+        outputs = self.backbone(input_ids=input_tensor)
+        st_scores = self.st_out(outputs.last_hidden_state).squeeze(-1)
+        ed_scores = self.ed_out(outputs.last_hidden_state).squeeze(-1)
         return st_scores, ed_scores
     
     def configure_optimizers(self):

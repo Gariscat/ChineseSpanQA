@@ -44,7 +44,7 @@ class CMRCDataset(Dataset):
                 input_ids = tokenizer.encode(
                     text=context,
                     text_pair=question,
-                    padding='max_length',
+                    padding='max_length' if max_length else 'longest',
                     max_length=max_length,
                 )
                 answer_ids = tokenizer.encode(

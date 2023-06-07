@@ -15,8 +15,9 @@ if __name__ == '__main__':
 
     tokenizer = BertTokenizer.from_pretrained(args.pretrained_path)
 
-    train_set = CMRCDataset('squad-style-data/cmrc2018_train.json', tokenizer)
-    val_set = CMRCDataset('squad-style-data/cmrc2018_dev.json', tokenizer)
+    max_length = 512 if 'xlnet' not in args.pretrained_path else None
+    train_set = CMRCDataset('squad-style-data/cmrc2018_train.json', tokenizer, max_length=max_length)
+    val_set = CMRCDataset('squad-style-data/cmrc2018_dev.json', tokenizer, max_length=max_length)
     train_loader = DataLoader(dataset=train_set, batch_size=4,)
     val_loader = DataLoader(dataset=val_set, batch_size=4,)
 
@@ -32,5 +33,5 @@ if __name__ == '__main__':
         },
         log_model=True
     )
-    trainer = pl.Trainer(accelerator="gpu", devices="auto", logger=wandb_logger, max_epochs=args.max_epochs)
+    trainer = pl.Trainer(accelerator="gpu", devices="auto", logger=wandb_logger, max_epochs=args.max_epochs, deterministic=True)
     trainer.fit(model=model, train_dataloaders=train_loader, val_dataloaders=val_loader)
