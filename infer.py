@@ -3,16 +3,14 @@ import argparse
 from transformers import BertTokenizer, AutoTokenizer
 import torch
 
+NULL_PRINT = '抱歉，关于这个问题我暂时没有可以提供的信息^_^'
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--ckpt_path', type=str, default='/root/ChineseSpanQA/ckpt/epoch=9-step=14210.ckpt')
     parser.add_argument('--pretrained_path', type=str, default='/root/chinese-bert-wwm-ext')
     args = parser.parse_args()
-    """
-    args.ckpt_path = '...'
-    print(args.ckpt_path)
-    exit()
-    """
+    
     tokenizer_cls = BertTokenizer if 'bert' in args.pretrained_path else AutoTokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained_path)
     model = ModelQA.load_from_checkpoint(args.ckpt_path, pretrained_path=args.pretrained_path)
@@ -37,13 +35,14 @@ if __name__ == '__main__':
             truncation=True,
         )
         input_ids = input_ids_a + input_ids_b
-        assert len(input_ids) <= 512
+        # assert len(input_ids) <= 512
         input_tensor = torch.LongTensor(input_ids).reshape(1, -1)
         st_scores, ed_scores = model(input_tensor=input_tensor)
         st_pred, ed_pred = torch.argmax(st_scores).item(), torch.argmax(ed_scores).item()
         # print(st_pred, ed_pred)
-        answer = tokenizer.decode(token_ids=input_ids[st_pred:ed_pred+1])
-        answer = answer.replace(' ', '')
-        print(answer)
-        
-    
+        if ed_pred > st_pred:
+            answer = tokenizer.decode(token_ids=input_ids[st_pred:ed_pred+1])
+            answer = answer.replace(' ', '')
+            print(answer)
+        else:
+            print(NULL_PRINT)
