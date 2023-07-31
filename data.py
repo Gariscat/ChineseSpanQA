@@ -20,31 +20,65 @@ def locate_list_in_list(sup: List, sub: List):
 
 
 class CMRCDataset(Dataset):
-    def __init__(self, json_path, tokenizer, max_length=512):
-        with open(json_path, 'r', encoding='utf-8') as f:
-            raw_data = json.load(f)['data']
-
+    def __init__(self, json_path, tokenizer, max_length=512, cleanned=True):
         self._data = []
             
-        for _ in tqdm(raw_data, desc='loading data'):
-            ### assert len(_['paragraphs']) == 1  # redundant list
-            para_dict = _['paragraphs'][0]
-            context = para_dict['context']
+        if not cleanned:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                raw_data = json.load(f)['data']
             
-            for q_dict in para_dict['qas']:
-                ### assert len(q_dict['answers']) == 1  # redundant list
-                question = q_dict['question']
-                answer_text = q_dict['answers'][0]['text']
-                if max_length and len(question) + len(context) > max_length-10:
-                    continue
-                answer_st = q_dict['answers'][0]['answer_start']
-                if context[answer_st] != answer_text[0]:  # erroneous annotation
-                    continue
+            for _ in tqdm(raw_data, desc='loading data'):
+                ### assert len(_['paragraphs']) == 1  # redundant list
+                para_dict = _['paragraphs'][0]
+                context = para_dict['context']
+                
+                for q_dict in para_dict['qas']:
+                    ### assert len(q_dict['answers']) == 1  # redundant list
+                    question = q_dict['question']
+                    answer_text = q_dict['answers'][0]['text']
+                    if max_length and len(question) + len(context) > max_length-10:
+                        continue
+                    answer_st = q_dict['answers'][0]['answer_start']
+                    if context[answer_st] != answer_text[0]:  # erroneous annotation
+                        continue
+            
+                    input_ids = tokenizer.encode(
+                        text=context,
+                        text_pair=question,
+                        padding='max_length',
+                        max_length=max_length,
+                    )
+                    answer_ids = tokenizer.encode(
+                        text=answer_text,
+                        add_special_tokens=False,
+                        padding=False,
+                    )
+                    """print('\n\n\n')
+                    print(len(context))
+                    print(len(question))
+                    print(len(input_ids))
+                    print('\n\n\n')"""
+                    
+                    st, ed = locate_list_in_list(input_ids, answer_ids)
+                    if st is None or ed is None:
+                        continue
+
+                    self._data.append((input_ids, st, ed))
         
+        else:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                raw_data = f.readlines()
+            
+            for _ in tqdm(raw_data, desc='loading data'):
+                q_dict = json.loads(_.strip("\n"))
+                context = q_dict['context']
+                question = q_dict['question']
+                st, ed = q_dict['st'], q_dict['ed']
+                answer_text = q_dict['answer']
                 input_ids = tokenizer.encode(
                     text=context,
                     text_pair=question,
-                    padding='max_length' if max_length else 'longest',
+                    padding='max_length',
                     max_length=max_length,
                 )
                 answer_ids = tokenizer.encode(
@@ -52,20 +86,11 @@ class CMRCDataset(Dataset):
                     add_special_tokens=False,
                     padding=False,
                 )
-                """print('\n\n\n')
-                print(len(context))
-                print(len(question))
-                print(len(input_ids))
-                print('\n\n\n')"""
-                if max_length:
-                    assert len(input_ids) == max_length
-
                 st, ed = locate_list_in_list(input_ids, answer_ids)
                 if st is None or ed is None:
                     continue
-
                 self._data.append((input_ids, st, ed))
-
+            
     def __len__(self):
         return len(self._data)
 
