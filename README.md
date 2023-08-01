@@ -7,6 +7,7 @@ This is a span-based system for Question Answering (QA) in Chinese
 ## Configure the Python environment
 
 We use [Anaconda3](https://www.anaconda.com/) as default. You can create a conda environment by ```environment.yml```.
+
 P.S. ```torch==1.9.0+cu111``` might need to be installed from the [official website](https://pytorch.org/get-started/previous-versions/).
 
 ## Download the model weights
