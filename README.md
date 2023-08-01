@@ -4,6 +4,11 @@
 This is a span-based system for Question Answering (QA) in Chinese
 . Potential uses include online automated customer services, etc.
 
+## Configure the Python environment
+
+We use [Anaconda3](https://www.anaconda.com/) as default. You can create a conda environment by ```environment.yml```.
+P.S. ```torch==1.9.0+cu111``` might need to be installed from the [official website](https://pytorch.org/get-started/previous-versions/).
+
 ## Download the model weights
 
 Create a sub-directory named ```ckpt/``` and put ```epoch=9-step=14210.ckpt``` inside it. The ```.ckpt``` file is available on [百度网盘](https://pan.baidu.com/s/1JWJYZ81ntjJeK21t81If8g?pwd=49w0)(提取码:49w0).
